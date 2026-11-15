@@ -58,10 +58,17 @@ inject_key() {
         echo "[*] injecting LICENSE_KEY into server.cfg"
         sed -i -E "s|^#?\s*sv_licenseKey.*|sv_licenseKey \"$LICENSE_KEY\"|" "$DATA/server.cfg"
     fi
-    if [ -n "$SERVER_PORT" ]; then
-        echo "[*] forcing port $SERVER_PORT in server.cfg"
-        sed -i -E "s|endpoint_add_tcp.*|endpoint_add_tcp \"0.0.0.0:$SERVER_PORT\"|" "$DATA/server.cfg"
-        sed -i -E "s|endpoint_add_udp.*|endpoint_add_udp \"0.0.0.0:$SERVER_PORT\"|" "$DATA/server.cfg"
+    # prefer FIVEM_PORT; ignore altare's auto-exported SERVER_PORT (which is SSH)
+    local PORT="${FIVEM_PORT:-${SERVER_PORT:-}}"
+    # sanity: never use port 22, 25195 (altare SSH sandbox default) or any obvious ssh port
+    if [ "$PORT" = "22" ] || [ "$PORT" = "25195" ]; then
+        echo "[!] refusing to bind FiveM to SSH-looking port $PORT — set FIVEM_PORT=<your extra altare port>"
+        PORT=""
+    fi
+    if [ -n "$PORT" ]; then
+        echo "[*] forcing port $PORT in server.cfg"
+        sed -i -E "s|endpoint_add_tcp.*|endpoint_add_tcp \"0.0.0.0:$PORT\"|" "$DATA/server.cfg"
+        sed -i -E "s|endpoint_add_udp.*|endpoint_add_udp \"0.0.0.0:$PORT\"|" "$DATA/server.cfg"
     fi
 }
 
