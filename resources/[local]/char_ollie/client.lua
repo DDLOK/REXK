@@ -123,17 +123,25 @@ local function closeWardrobe(save)
     editingChar = nil
 end
 
--- editor camera controls (A/D rotate, W/S zoom) while wardrobe open
+-- camera deltas driven by NUI mouse (see wardrobe.js)
+RegisterNUICallback('camDelta', function(d, cb)
+    local dx = tonumber(d.dx) or 0
+    camHeading = camHeading + (dx * 0.5)
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('camZoom', function(d, cb)
+    local dy = tonumber(d.dy) or 0
+    camZoom = math.max(1.0, math.min(5.0, camZoom + (dy * 0.003)))
+    cb({ ok = true })
+end)
+
+-- editor camera update thread
 CreateThread(function()
     while true do
-        Wait(0)
         if wardrobeOpen and editorCam then
-            -- SetNuiFocus(true, true) blocks game inputs, so poll IsRawKeyPressed
-            if IsRawKeyPressed(65) then camHeading = camHeading - 1.5 end   -- A
-            if IsRawKeyPressed(68) then camHeading = camHeading + 1.5 end   -- D
-            if IsRawKeyPressed(87) then camZoom = math.max(1.0, camZoom - 0.03) end  -- W
-            if IsRawKeyPressed(83) then camZoom = math.min(5.0, camZoom + 0.03) end  -- S
             updateEditorCam()
+            Wait(0)
         else
             Wait(500)
         end

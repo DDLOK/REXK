@@ -146,3 +146,41 @@ window.addEventListener('message', (e) => {
         $wroot.style.display = 'none';
     }
 });
+
+// =========================================================
+// mouse drag to rotate camera + scroll wheel to zoom
+// click-and-hold anywhere on the RIGHT side (the preview area)
+// =========================================================
+const $wright = document.querySelector('.wright');
+let dragging = false;
+let lastX = 0;
+
+$wright.addEventListener('mousedown', (e) => {
+    dragging = true;
+    lastX = e.clientX;
+    $wright.style.cursor = 'grabbing';
+});
+window.addEventListener('mouseup', () => { dragging = false; $wright.style.cursor = ''; });
+window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX;
+    lastX = e.clientX;
+    fetch(`https://${GetParentResourceName()}/camDelta`, {
+        method: 'POST',
+        body: JSON.stringify({ dx }),
+    });
+});
+$wright.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    fetch(`https://${GetParentResourceName()}/camZoom`, {
+        method: 'POST',
+        body: JSON.stringify({ dy: e.deltaY }),
+    });
+}, { passive: false });
+
+// hint update
+const $hint = document.querySelector('.camhint');
+if ($hint) $hint.innerHTML = `
+    <div class="row"><kbd>CLICK + DRAG</kbd> rotate</div>
+    <div class="row"><kbd>SCROLL</kbd> zoom</div>
+`;
