@@ -44,6 +44,13 @@ local function applyCharToPed(char)
             end
         end
     end
+    if char.colors then
+        local c = char.colors
+        if c.hair1 or c.hair2 then SetPedHairColor(ped, c.hair1 or 0, c.hair2 or 0) end
+        if c.eye   then SetPedEyeColor(ped, c.eye) end
+        if c.beard or c.hair1 then SetPedHeadOverlayColor(ped, 1, 1, c.beard or c.hair1 or 0, c.hair2 or c.beard or c.hair1 or 0) end
+        if c.brow  then SetPedHeadOverlayColor(ped, 2, 1, c.brow, c.hair2 or c.brow) end
+    end
 end
 
 local function openSelector()
@@ -187,22 +194,31 @@ RegisterNUICallback('closeChar', function(_, cb) cb({ ok = true }) end)
 -- wardrobe callbacks
 RegisterNUICallback('liveChange', function(d, cb)
     local ped = PlayerPedId()
-    local comp = tonumber(d.component)
     local draw = tonumber(d.drawable) or 0
     local tex  = tonumber(d.texture) or 0
     if d.kind == 'comp' then
+        local comp = tonumber(d.component)
         if comp then
             SetPedComponentVariation(ped, comp, draw, tex, 0)
             editingChar.components = editingChar.components or {}
             editingChar.components[tostring(comp)] = { draw, tex }
         end
     elseif d.kind == 'prop' then
+        local comp = tonumber(d.component)
         if comp then
             if draw >= 0 then SetPedPropIndex(ped, comp, draw, tex, true)
             else ClearPedProp(ped, comp) end
             editingChar.props = editingChar.props or {}
             editingChar.props[tostring(comp)] = { draw, tex }
         end
+    elseif d.kind == 'color' then
+        editingChar.colors = editingChar.colors or {}
+        editingChar.colors[tostring(d.component)] = draw
+        local c = editingChar.colors
+        if d.component == 'hair1' or d.component == 'hair2' then SetPedHairColor(ped, c.hair1 or 0, c.hair2 or 0) end
+        if d.component == 'eye'   then SetPedEyeColor(ped, draw) end
+        if d.component == 'beard' then SetPedHeadOverlayColor(ped, 1, 1, draw, draw) end
+        if d.component == 'brow'  then SetPedHeadOverlayColor(ped, 2, 1, draw, draw) end
     end
     cb({ ok = true })
 end)
@@ -223,7 +239,8 @@ end)
 
 RegisterNUICallback('wardrobeSave', function(d, cb)
     editingChar.components = d.comps or {}
-    editingChar.props = d.props or {}
+    editingChar.props      = d.props  or {}
+    editingChar.colors     = d.colors or {}
     TriggerServerEvent('char_ollie:saveChar', editingIdx, editingChar)
     closeWardrobe(true)
     pcall(function() exports.notify_ezk:success('SAVED', 'character ' .. editingChar.name .. ' saved') end)

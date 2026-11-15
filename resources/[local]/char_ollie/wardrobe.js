@@ -9,6 +9,13 @@ const TABS = [
         { c: 2,  name: 'Hair' },
         { c: 1,  name: 'Mask' },
     ] },
+    { id: 'color',  label: 'Color',  kind: 'color', items: [
+        { c: 'hair1', name: 'Hair Color',      max: 64 },
+        { c: 'hair2', name: 'Hair Highlights', max: 64 },
+        { c: 'eye',   name: 'Eye Color',       max: 32 },
+        { c: 'beard', name: 'Beard Color',     max: 64 },
+        { c: 'brow',  name: 'Eyebrow Color',   max: 64 },
+    ] },
     { id: 'top',    label: 'Top',    kind: 'comp', items: [
         { c: 11, name: 'Top' },
         { c: 3,  name: 'Torso' },
@@ -56,10 +63,17 @@ function renderTabs() {
 }
 
 function current(kind, c) {
+    if (kind === 'color') { state.colors = state.colors || {}; return [state.colors[c] || 0, 0]; }
     const store = (kind === 'comp') ? state.comps : state.props;
     return store[c] || [0, 0];
 }
 function setCurrent(kind, c, d, t) {
+    if (kind === 'color') {
+        state.colors = state.colors || {};
+        state.colors[c] = d;
+        sendLive(kind, c, d, 0);
+        return;
+    }
     const store = (kind === 'comp') ? state.comps : state.props;
     store[c] = [d, t];
     sendLive(kind, c, d, t);
@@ -80,29 +94,48 @@ function renderList() {
         const row = document.createElement('div');
         row.className = 'wrow';
         const cur = current(tab.kind, it.c);
-        row.innerHTML = `
-            <div class="label">${it.name}</div>
-            <div class="ctrl">
-                <button data-dir="-1" data-kind="d">‹</button>
-                <div class="val"><span class="dv">${cur[0]}</span> / <span class="tv">${cur[1]}</span></div>
-                <button data-dir="+1" data-kind="d">›</button>
-            </div>
-            <div class="ctrl">
-                <button data-dir="-1" data-kind="t">‹ tex</button>
-                <div class="val" style="opacity:0.7">texture</div>
-                <button data-dir="+1" data-kind="t">tex ›</button>
-            </div>`;
-        row.querySelectorAll('button').forEach(b => {
-            b.addEventListener('click', () => {
-                let [d, t] = current(tab.kind, it.c);
-                const dir = parseInt(b.dataset.dir);
-                if (b.dataset.kind === 'd') { d = Math.max(-1, d + dir); }
-                else { t = Math.max(0, t + dir); }
-                setCurrent(tab.kind, it.c, d, t);
-                row.querySelector('.dv').textContent = d;
-                row.querySelector('.tv').textContent = t;
+        if (tab.kind === 'color') {
+            row.innerHTML = `
+                <div class="label">${it.name}</div>
+                <div class="ctrl">
+                    <button data-dir="-1" data-kind="d">‹</button>
+                    <div class="val"><span class="dv">${cur[0]}</span> / ${it.max - 1}</div>
+                    <button data-dir="+1" data-kind="d">›</button>
+                </div>`;
+            row.querySelectorAll('button').forEach(b => {
+                b.addEventListener('click', () => {
+                    let [d] = current(tab.kind, it.c);
+                    const dir = parseInt(b.dataset.dir);
+                    d = Math.max(0, Math.min(it.max - 1, d + dir));
+                    setCurrent(tab.kind, it.c, d, 0);
+                    row.querySelector('.dv').textContent = d;
+                });
             });
-        });
+        } else {
+            row.innerHTML = `
+                <div class="label">${it.name}</div>
+                <div class="ctrl">
+                    <button data-dir="-1" data-kind="d">‹</button>
+                    <div class="val"><span class="dv">${cur[0]}</span> / <span class="tv">${cur[1]}</span></div>
+                    <button data-dir="+1" data-kind="d">›</button>
+                </div>
+                <div class="ctrl">
+                    <button data-dir="-1" data-kind="t">‹ tex</button>
+                    <div class="val" style="opacity:0.7">texture</div>
+                    <button data-dir="+1" data-kind="t">tex ›</button>
+                </div>`;
+            row.querySelectorAll('button').forEach(b => {
+                b.addEventListener('click', () => {
+                    let [d, t] = current(tab.kind, it.c);
+                    const dir = parseInt(b.dataset.dir);
+                    if (b.dataset.kind === 'd') { d = Math.max(-1, d + dir); }
+                    else { t = Math.max(0, t + dir); }
+                    setCurrent(tab.kind, it.c, d, t);
+                    row.querySelector('.dv').textContent = d;
+                    row.querySelector('.tv').textContent = t;
+                });
+            });
+        }
         $wlist.appendChild(row);
     });
 }
@@ -129,7 +162,7 @@ document.getElementById('wrandom').addEventListener('click', () => {
 document.getElementById('wsave').addEventListener('click', () => {
     fetch(`https://${GetParentResourceName()}/wardrobeSave`, {
         method: 'POST',
-        body: JSON.stringify({ comps: state.comps, props: state.props }),
+        body: JSON.stringify({ comps: state.comps, props: state.props, colors: state.colors }),
     });
 });
 
@@ -137,7 +170,7 @@ window.addEventListener('message', (e) => {
     const d = e.data;
     if (d.action === 'openWardrobe') {
         currentName = d.name || '';
-        state = { comps: d.comps || {}, props: d.props || {} };
+        state = { comps: d.comps || {}, props: d.props || {}, colors: d.colors || {} };
         $wname.textContent = currentName;
         $wroot.style.display = 'flex';
         setTab('head');
