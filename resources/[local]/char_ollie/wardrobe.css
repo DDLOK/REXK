@@ -1,0 +1,160 @@
+:root {
+    --accent: #ff2e7e;
+    --accent2: #22d3ee;
+    --accent3: #a855f7;
+    --dim: #6b7183;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; font-family: 'Inter', sans-serif; color: #f2f3f8; background: transparent; overflow: hidden; }
+
+#wroot { display: flex; height: 100%; width: 100%; position: relative; }
+
+.wbg {
+    position: fixed; inset: 0;
+    background:
+        linear-gradient(to right, rgba(10,12,20,0.95), rgba(10,12,20,0.2) 40%, transparent);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wleft {
+    position: relative; z-index: 1;
+    width: 420px;
+    height: 100%;
+    background: rgba(10, 12, 20, 0.88);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(255,255,255,0.05);
+    display: flex; flex-direction: column;
+    padding: 24px;
+    gap: 16px;
+    animation: slideL 0.3s ease;
+}
+@keyframes slideL { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+.wleft header { display: flex; flex-direction: column; gap: 4px; }
+.back {
+    font-size: 11px; color: var(--dim); letter-spacing: 0.15em; cursor: pointer;
+    padding: 2px 0; width: fit-content;
+}
+.back:hover { color: var(--accent); }
+.wleft h2 { font-size: 28px; font-weight: 900; letter-spacing: 0.3em; margin-top: 4px; }
+.wname { font-size: 12px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.wtabs {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding: 6px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+}
+.wtab {
+    flex: 1 0 auto;
+    min-width: 70px;
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    color: var(--dim);
+    font: inherit; font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.wtab.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: #fff;
+}
+
+.wlist {
+    flex: 1;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 8px;
+    padding-right: 4px;
+}
+.wlist::-webkit-scrollbar { width: 6px; }
+.wlist::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+.wrow {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.wrow .label {
+    font-size: 11px; letter-spacing: 0.15em;
+    color: var(--dim); text-transform: uppercase;
+    font-weight: 700;
+}
+.wrow .ctrl {
+    display: flex; gap: 6px; align-items: center;
+    justify-content: space-between;
+}
+.wrow .ctrl button {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    color: #f2f3f8; font: inherit; font-size: 16px; font-weight: 700;
+    cursor: pointer;
+}
+.wrow .ctrl button:hover { background: var(--accent); border-color: var(--accent); }
+.wrow .ctrl .val {
+    flex: 1;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 0.1em;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 6px 0;
+}
+
+footer { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+footer button {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: #f2f3f8;
+    font: inherit;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+footer button.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border: none;
+    box-shadow: 0 8px 24px rgba(255,46,126,0.3);
+}
+footer button:hover { transform: translateY(-1px); }
+
+.wright {
+    flex: 1;
+    position: relative;
+    padding: 40px;
+}
+
+.camhint {
+    position: absolute;
+    bottom: 32px; right: 32px;
+    background: rgba(10,12,20,0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 12px;
+    color: var(--dim);
+}
+.camhint .row { display: flex; gap: 10px; align-items: center; }
+.camhint kbd {
+    display: inline-block;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    color: #f2f3f8;
+}

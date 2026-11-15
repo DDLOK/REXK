@@ -24,6 +24,7 @@ function render() {
                 </div>
                 <div class="right">
                     <button class="btn primary" data-act="select" data-idx="${i}">${sel ? 'PICK' : 'LOAD'}</button>
+                    <button class="btn" data-act="edit" data-idx="${i}">EDIT</button>
                     <button class="btn danger" data-act="delete" data-idx="${i}">DEL</button>
                 </div>`;
         } else {
@@ -49,6 +50,9 @@ function render() {
 function handleAction(act, idx) {
     if (act === 'select') {
         fetch(`https://${GetParentResourceName()}/selectChar`, { method: 'POST', body: JSON.stringify({ idx }) });
+    } else if (act === 'edit') {
+        const char = currentData.chars[idx];
+        fetch(`https://${GetParentResourceName()}/editChar`, { method: 'POST', body: JSON.stringify({ idx, char }) });
     } else if (act === 'delete') {
         if (confirm('Delete this character?')) {
             fetch(`https://${GetParentResourceName()}/deleteChar`, { method: 'POST', body: JSON.stringify({ idx }) });

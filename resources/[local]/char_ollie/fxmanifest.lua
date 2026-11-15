@@ -8,6 +8,9 @@ server_scripts { 'server.lua' }
 client_scripts { 'client.lua' }
 
 ui_page 'html/index.html'
-files { 'html/index.html', 'html/style.css', 'html/script.js' }
+files {
+    'html/index.html', 'html/style.css', 'html/script.js',
+    'wardrobe.html', 'wardrobe.css', 'wardrobe.js',
+}
 
 dependency 'account_ollie'

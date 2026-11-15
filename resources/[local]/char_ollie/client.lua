@@ -1,9 +1,14 @@
 -- =========================================================
--- char_ollie / client.lua - selector + applier
+-- char_ollie / client.lua - selector + applier + wardrobe editor
 -- =========================================================
 
 local selectorOpen = false
-local activeCharIdx = nil
+local wardrobeOpen = false
+local editingIdx = nil
+local editingChar = nil
+local editorCam = nil
+local camHeading = 0.0
+local camZoom = 2.0
 
 local function applyCharToPed(char)
     local ped = PlayerPedId()
@@ -21,16 +26,16 @@ local function applyCharToPed(char)
         end
     end
     if char.components then
-        for compStr, v in pairs(char.components) do
-            local comp = tonumber(compStr)
+        for k, v in pairs(char.components) do
+            local comp = tonumber(k)
             local draw = tonumber(v[1]) or 0
             local tex  = tonumber(v[2]) or 0
             if comp then SetPedComponentVariation(ped, comp, draw, tex, 0) end
         end
     end
     if char.props then
-        for propStr, v in pairs(char.props) do
-            local prop = tonumber(propStr)
+        for k, v in pairs(char.props) do
+            local prop = tonumber(k)
             local draw = tonumber(v[1])
             local tex  = tonumber(v[2]) or 0
             if prop then
@@ -42,6 +47,7 @@ local function applyCharToPed(char)
 end
 
 local function openSelector()
+    if wardrobeOpen then return end
     if selectorOpen then return end
     selectorOpen = true
     TriggerServerEvent('char_ollie:request')
@@ -52,28 +58,89 @@ end
 
 local function closeSelector()
     selectorOpen = false
-    SetNuiFocus(false, false)
+    if not wardrobeOpen then SetNuiFocus(false, false) end
     SendNUIMessage({ action = 'closeChar' })
 end
 
 AddEventHandler('char_ollie:openSelector', openSelector)
 
-RegisterNetEvent('char_ollie:list')
-AddEventHandler('char_ollie:list', function(data)
-    SendNUIMessage({ action = 'charList', data = data })
+-- K key opens selector any time (both logged in and not)
+RegisterCommand('skins', openSelector, false)
+RegisterCommand('chars', openSelector, false)
+RegisterKeyMapping('skins', 'Open Character / Wardrobe', 'keyboard', 'K')
+
+-- ============== WARDROBE EDITOR ==============
+local function startEditorCam()
+    local p = PlayerPedId()
+    local pc = GetEntityCoords(p)
+    editorCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
+    SetCamCoord(editorCam, pc.x + 2.0, pc.y, pc.z + 0.5)
+    PointCamAtEntity(editorCam, p, 0.0, 0.0, 0.5, true)
+    SetCamActive(editorCam, true)
+    RenderScriptCams(true, false, 0, true, true)
+    camHeading = GetEntityHeading(p) + 180.0
+    camZoom = 2.0
+end
+
+local function updateEditorCam()
+    if not editorCam or not DoesCamExist(editorCam) then return end
+    local p = PlayerPedId()
+    local pc = GetEntityCoords(p)
+    local rad = math.rad(camHeading)
+    local x = pc.x + math.cos(rad) * camZoom
+    local y = pc.y + math.sin(rad) * camZoom
+    SetCamCoord(editorCam, x, y, pc.z + 0.3)
+    PointCamAtEntity(editorCam, p, 0.0, 0.0, 0.3, true)
+end
+
+local function stopEditorCam()
+    RenderScriptCams(false, false, 0, true, true)
+    if editorCam and DoesCamExist(editorCam) then DestroyCam(editorCam, true); editorCam = nil end
+end
+
+local function openWardrobe(idx, char)
+    editingIdx = idx
+    editingChar = char or { name = 'New Character', model = 'mp_m_freemode_01', components = {}, props = {} }
+    -- apply current look so editor starts from saved state
+    applyCharToPed(editingChar)
+    wardrobeOpen = true
+    SendNUIMessage({
+        action = 'openWardrobe',
+        name = editingChar.name,
+        comps = editingChar.components or {},
+        props = editingChar.props or {},
+    })
+    SetNuiFocus(true, true)
+    SetCursorLocation(0.3, 0.5)
+    startEditorCam()
+end
+
+local function closeWardrobe(save)
+    SendNUIMessage({ action = 'closeWardrobe' })
+    wardrobeOpen = false
+    if not selectorOpen then SetNuiFocus(false, false) end
+    stopEditorCam()
+    editingChar = nil
+end
+
+-- editor camera controls (A/D rotate, W/S zoom) while wardrobe open
+CreateThread(function()
+    while true do
+        Wait(0)
+        if wardrobeOpen and editorCam then
+            -- SetNuiFocus(true, true) blocks game inputs, so poll IsRawKeyPressed
+            if IsRawKeyPressed(65) then camHeading = camHeading - 1.5 end   -- A
+            if IsRawKeyPressed(68) then camHeading = camHeading + 1.5 end   -- D
+            if IsRawKeyPressed(87) then camZoom = math.max(1.0, camZoom - 0.03) end  -- W
+            if IsRawKeyPressed(83) then camZoom = math.min(5.0, camZoom + 0.03) end  -- S
+            updateEditorCam()
+        else
+            Wait(500)
+        end
+    end
 end)
 
-RegisterNetEvent('char_ollie:applied')
-AddEventHandler('char_ollie:applied', function(char)
-    activeCharIdx = char._idx
-    closeSelector()
-    applyCharToPed(char)
-    -- release player + send home
-    TriggerEvent('account_ollie:cameraStop')
-    Wait(300)
-    TriggerServerEvent('house_ollie:goHome')
-end)
-
+-- NUI callbacks
 RegisterNUICallback('selectChar', function(d, cb)
     TriggerServerEvent('char_ollie:selectChar', tonumber(d.idx))
     cb({ ok = true })
@@ -86,7 +153,19 @@ RegisterNUICallback('createChar', function(d, cb)
         components = {},
         props = {},
     }
-    TriggerServerEvent('char_ollie:saveChar', tonumber(d.idx), char)
+    -- immediately enter wardrobe editor for the new char
+    closeSelector()
+    Wait(100)
+    openWardrobe(tonumber(d.idx), char)
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('editChar', function(d, cb)
+    local idx = tonumber(d.idx)
+    -- editing existing — reuse data sent from selector
+    closeSelector()
+    Wait(100)
+    openWardrobe(idx, d.char)
     cb({ ok = true })
 end)
 
@@ -95,13 +174,70 @@ RegisterNUICallback('deleteChar', function(d, cb)
     cb({ ok = true })
 end)
 
-RegisterNUICallback('closeChar', function(_, cb)
+RegisterNUICallback('closeChar', function(_, cb) cb({ ok = true }) end)
+
+-- wardrobe callbacks
+RegisterNUICallback('liveChange', function(d, cb)
+    local ped = PlayerPedId()
+    local comp = tonumber(d.component)
+    local draw = tonumber(d.drawable) or 0
+    local tex  = tonumber(d.texture) or 0
+    if d.kind == 'comp' then
+        if comp then
+            SetPedComponentVariation(ped, comp, draw, tex, 0)
+            editingChar.components = editingChar.components or {}
+            editingChar.components[tostring(comp)] = { draw, tex }
+        end
+    elseif d.kind == 'prop' then
+        if comp then
+            if draw >= 0 then SetPedPropIndex(ped, comp, draw, tex, true)
+            else ClearPedProp(ped, comp) end
+            editingChar.props = editingChar.props or {}
+            editingChar.props[tostring(comp)] = { draw, tex }
+        end
+    end
     cb({ ok = true })
 end)
 
--- /chars to reopen selector any time
-RegisterCommand('chars', openSelector, false)
+RegisterNUICallback('wardrobeBack', function(_, cb)
+    closeWardrobe(false)
+    Wait(100)
+    openSelector()
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('wardrobeReset', function(_, cb)
+    editingChar.components = {}
+    editingChar.props = {}
+    SetPedDefaultComponentVariation(PlayerPedId())
+    cb({ ok = true })
+end)
+
+RegisterNUICallback('wardrobeSave', function(d, cb)
+    editingChar.components = d.comps or {}
+    editingChar.props = d.props or {}
+    TriggerServerEvent('char_ollie:saveChar', editingIdx, editingChar)
+    closeWardrobe(true)
+    pcall(function() exports.notify_ezk:success('SAVED', 'character ' .. editingChar.name .. ' saved') end)
+    cb({ ok = true })
+end)
+
+RegisterNetEvent('char_ollie:list')
+AddEventHandler('char_ollie:list', function(data)
+    SendNUIMessage({ action = 'charList', data = data })
+end)
+
+RegisterNetEvent('char_ollie:applied')
+AddEventHandler('char_ollie:applied', function(char)
+    closeSelector()
+    applyCharToPed(char)
+    TriggerEvent('account_ollie:cameraStop')
+    Wait(300)
+    TriggerServerEvent('house_ollie:goHome')
+end)
+
 CreateThread(function()
     Wait(1500)
+    TriggerEvent('chat:addSuggestion', '/skins', 'open character / wardrobe (K)', {})
     TriggerEvent('chat:addSuggestion', '/chars', 'open character selector', {})
 end)
