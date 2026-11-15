@@ -62,4 +62,4 @@ then in server console: `restart admin_ollie`
 
 ---
 
-built by Olivia — https://discord.gg/ojailbreaks
+built by Olivia — https://discord.gg/6h2kEeasJx
