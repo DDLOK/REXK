@@ -48,7 +48,11 @@ local function sendHome(src)
     if not user then reply(src, {255,80,80}, 'HOUSE', 'login first via the EZK form') return end
     local idx = assignHouse(user)
     local h = HOUSES[idx]
-    TriggerClientEvent('house_ollie:teleport', src, { x = h.x, y = h.y, z = h.z, h = h.h, name = h.name })
+    local interior = INTERIORS[idx] or INTERIORS[1]
+    TriggerClientEvent('house_ollie:teleport', src, {
+        x = h.x, y = h.y, z = h.z, h = h.h, name = h.name,
+        inside = { x = interior.coords.x, y = interior.coords.y, z = interior.coords.z, h = interior.heading, ipl = interior.ipl, name = interior.name }
+    })
 end
 
 RegisterCommand('home', sendHome, false)
