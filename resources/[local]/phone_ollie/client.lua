@@ -41,6 +41,11 @@ RegisterNUICallback('requestContacts', function(_, cb)
     cb({ ok = true })
 end)
 
+RegisterNUICallback('duty', function(_, cb)
+    ExecuteCommand('duty')
+    cb({ ok = true })
+end)
+
 RegisterNetEvent('phone_ollie:contacts')
 AddEventHandler('phone_ollie:contacts', function(list)
     SendNUIMessage({ action = 'contacts', list = list })

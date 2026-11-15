@@ -1,11 +1,13 @@
 -- =========================================================
--- account_ollie / client.lua - NUI login + state sync
+-- account_ollie / client.lua - HARD gate: no gameplay until logged in
 -- =========================================================
 
 LoggedIn    = false
 IsAdminFlag = false
 Username    = nil
 NuiOpen     = false
+
+local SKYCAGE = vector3(-2000.0, -2000.0, 1200.0)
 
 local function notify(txt)
     SetNotificationTextEntry('STRING')
@@ -26,17 +28,61 @@ local function closeLogin()
     SendNUIMessage({ action = 'close' })
 end
 
+-- GATE THREAD: while not logged in, freeze + invisible + skycage + no controls
+CreateThread(function()
+    while true do
+        if not LoggedIn then
+            local p = PlayerPedId()
+            if p ~= 0 and p ~= -1 then
+                SetEntityInvincible(p, true)
+                SetEntityVisible(p, false, false)
+                FreezeEntityPosition(p, true)
+                SetEntityCoordsNoOffset(p, SKYCAGE.x, SKYCAGE.y, SKYCAGE.z, false, false, false)
+                SetPlayerInvisibleLocally(PlayerId(), true)
+                SetPlayerControl(PlayerId(), false, 0)
+                DisableAllControlActions(0)
+                EnableControlAction(0, 249, true) -- push-to-talk
+                HideHudAndRadarThisFrame()
+            end
+            Wait(0)
+        else
+            Wait(500)
+        end
+    end
+end)
+
+local function releasePlayer()
+    local p = PlayerPedId()
+    SetEntityInvincible(p, false)
+    SetEntityVisible(p, true, false)
+    FreezeEntityPosition(p, false)
+    SetPlayerInvisibleLocally(PlayerId(), false)
+    SetPlayerControl(PlayerId(), true, 0)
+    -- let spawn_ollie / house_ollie take over placement
+end
+
 RegisterNetEvent('account_ollie:state')
 AddEventHandler('account_ollie:state', function(s)
+    local wasLogged = LoggedIn
     LoggedIn    = s.logged
     IsAdminFlag = s.admin
     Username    = s.username
     if LoggedIn then
         closeLogin()
+        releasePlayer()
+        if not wasLogged then
+            TriggerEvent('account_ollie:justLoggedIn')
+        end
         notify(('~g~logged in as ~w~%s%s'):format(s.username, s.admin and ' ~y~[ADMIN]' or ''))
     else
         openLogin()
     end
+end)
+
+AddEventHandler('account_ollie:justLoggedIn', function()
+    -- teleport to a sane place + respawn-ish
+    Wait(500)
+    TriggerServerEvent('house_ollie:goHome')
 end)
 
 AddEventHandler('onClientResourceStart', function(r)
@@ -47,8 +93,10 @@ AddEventHandler('onClientResourceStart', function(r)
 end)
 
 AddEventHandler('playerSpawned', function()
-    Wait(1000)
-    if not LoggedIn then openLogin() end
+    Wait(500)
+    if not LoggedIn then
+        openLogin()
+    end
 end)
 
 -- NUI callbacks
@@ -63,16 +111,22 @@ RegisterNUICallback('register', function(data, cb)
 end)
 
 RegisterNUICallback('closed', function(_, cb)
-    NuiOpen = false
-    SetNuiFocus(false, false)
+    -- can only close if actually logged in
+    if LoggedIn then
+        NuiOpen = false
+        SetNuiFocus(false, false)
+    else
+        SendNUIMessage({ action = 'open' })
+    end
     cb({})
 end)
 
 RegisterNetEvent('account_ollie:nuiResult')
 AddEventHandler('account_ollie:nuiResult', function(ok, msg)
-    SendNUIMessage({ action = ok and 'close' or 'open' })
     if ok then
-        closeLogin()
+        -- state push from server will unlock
+    else
+        SendNUIMessage({ action = 'open' })
     end
     notify((ok and '~g~' or '~r~') .. msg)
 end)

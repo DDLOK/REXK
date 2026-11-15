@@ -61,9 +61,7 @@ setInterval(updateTime, 10000); updateTime();
 $dock.forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
 
 document.getElementById('duty-btn').addEventListener('click', () => {
-    fetch(`https://${GetParentResourceName()}/applyJob`, { method: 'POST', body: JSON.stringify({ job: state.job }) });
-    // actually trigger duty via chat; cheap:
-    // keep simple — duty toggle still via /duty command
+    fetch(`https://${GetParentResourceName()}/duty`, { method: 'POST', body: '{}' });
 });
 
 document.getElementById('pay-btn').addEventListener('click', () => {
