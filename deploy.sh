@@ -26,13 +26,20 @@ ensure_deps() {
 }
 
 fetch_fxserver() {
-    mkdir -p "$ALPINE"
+    mkdir -p "$ROOT"
     local url
     url=$(curl -fsSL "$API" | python3 -c "import sys,json,re; d=json.load(sys.stdin); u=d['recommended_download']; m=re.search(r'(\d+-[a-f0-9]+)',u); print('https://runtime.fivem.net/artifacts/fivem/build_proot_linux/master/'+m.group(1)+'/fx.tar.xz')")
     echo "[*] downloading FXServer linux: $url"
     curl -fsSL "$url" -o /tmp/fx.tar.xz
-    tar -xJf /tmp/fx.tar.xz -C "$ALPINE"
+    # tarball contains its own top-level 'alpine/' dir, so extract into ROOT
+    rm -rf "$ALPINE"
+    tar -xJf /tmp/fx.tar.xz -C "$ROOT"
     rm /tmp/fx.tar.xz
+    # safety: if the layout wrapped it (older builds), unwrap
+    if [ -d "$ALPINE/alpine" ] && [ ! -f "$ALPINE/opt/cfx-server/FXServer" ]; then
+        mv "$ALPINE/alpine"/* "$ALPINE/"
+        rmdir "$ALPINE/alpine"
+    fi
     echo "[+] FXServer extracted to $ALPINE"
 }
 
