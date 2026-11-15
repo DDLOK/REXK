@@ -7,7 +7,8 @@ IsAdminFlag = false
 Username    = nil
 NuiOpen     = false
 
-local SKYCAGE = vector3(-2000.0, -2000.0, 1200.0)
+-- scenic overlook of Los Santos (Vinewood Sign) - player ped is invisible, default cam shows the city
+local SKYCAGE = vector3(708.0, 1196.0, 353.3)
 
 local function notify(txt)
     SetNotificationTextEntry('STRING')
@@ -21,14 +22,12 @@ local function openLogin()
     SendNUIMessage({ action = 'open' })
     SetNuiFocus(true, true)
     SetCursorLocation(0.5, 0.5)
-    TriggerEvent('account_ollie:cameraStart')
 end
 
 local function closeLogin()
     NuiOpen = false
     SetNuiFocus(false, false)
     SendNUIMessage({ action = 'close' })
-    TriggerEvent('account_ollie:cameraStop')
 end
 
 -- GATE THREAD: keep player hidden/invincible/frozen until logged in.
