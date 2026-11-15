@@ -16,13 +16,11 @@ local function notify(txt)
 end
 
 local function openLogin()
+    if LoggedIn then return end  -- never reopen once logged in
     NuiOpen = true
     SendNUIMessage({ action = 'open' })
-    CreateThread(function()
-        Wait(150)
-        SetNuiFocus(true, true)
-        SetCursorLocation(0.5, 0.5)
-    end)
+    SetNuiFocus(true, true)
+    SetCursorLocation(0.5, 0.5)
 end
 
 local function closeLogin()
@@ -62,13 +60,16 @@ CreateThread(function()
     end
 end)
 
--- safety net: if focus accidentally drops while unlogged, restore after a grace period
+-- safety net: if focus drops while unlogged, restore. If somehow set while logged in, clear.
 CreateThread(function()
     while true do
         Wait(2000)
         if not LoggedIn and NuiOpen and not IsNuiFocused() then
             SetNuiFocus(true, true)
             SetCursorLocation(0.5, 0.5)
+        elseif LoggedIn and IsNuiFocused() and not NuiOpen then
+            -- stale focus — release it
+            SetNuiFocus(false, false)
         end
     end
 end)

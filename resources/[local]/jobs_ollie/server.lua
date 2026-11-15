@@ -30,10 +30,13 @@ end
 
 local function getJob(src)
     if sessions[src] then return sessions[src].job, sessions[src].onDuty end
-    local u = userOf(src); if not u then return 'unemployed', false end
-    local t = load()
-    local j = t[u] or 'unemployed'
-    sessions[src] = { job = j, onDuty = false }
+    local u = userOf(src)
+    local j = 'unemployed'
+    if u then
+        local t = load()
+        j = t[u] or 'unemployed'
+    end
+    sessions[src] = { job = j, onDuty = false }  -- always seat the session
     return j, false
 end
 
