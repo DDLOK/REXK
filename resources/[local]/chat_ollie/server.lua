@@ -29,9 +29,9 @@ end)
 RegisterNetEvent('chat_ollie:welcome')
 AddEventHandler('chat_ollie:welcome', function()
     local src = source
-    send(src, 'ollie',  {255,  80, 200}, 'cheeks out - welcome to the bench')
-    send(src, 'ollie',  {255,  80, 200}, 'type /help to see commands')
-    send(src, 'bench',  {120, 200, 255}, 'built by olivia - discord.gg/ojailbreaks')
+    send(src, 'EZK',   {255,  80, 200}, 'welcome to the bench - sign in with the form')
+    send(src, 'EZK',   {255,  80, 200}, 'type /help for chat commands, F5 for the menu')
+    send(src, 'EZK',   {120, 200, 255}, 'made by EZK TEAM - discord.gg/ojailbreaks')
 end)
 
 -- /me emote
@@ -80,4 +80,4 @@ RegisterCommand('pm', function(src, args)
     send(src,    'PM to '   .. (GetPlayerName(target) or target), {255, 200, 100}, msg)
 end, false)
 
-print('^2[chat_ollie]^7 loaded - built by olivia')
+print('^2[chat_ollie]^7 loaded - made by EZK TEAM')

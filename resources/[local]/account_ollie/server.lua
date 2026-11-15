@@ -141,6 +141,49 @@ RegisterCommand('me-account', function(src)
     reply(src, {120,220,255}, 'ACCOUNT', ('%s%s'):format(s.username, s.admin and ' [ADMIN]' or ''))
 end, false)
 
+-- NUI-driven handlers
+RegisterNetEvent('account_ollie:nuiLogin')
+AddEventHandler('account_ollie:nuiLogin', function(user, pass)
+    local src = source
+    if not user or not pass then
+        TriggerClientEvent('account_ollie:nuiResult', src, false, 'missing fields')
+        return
+    end
+    accounts = load()
+    local a = accounts[user]
+    if not a or a.password ~= pass then
+        TriggerClientEvent('account_ollie:nuiResult', src, false, 'wrong credentials')
+        return
+    end
+    a.ids = a.ids or {}
+    local id = pickId(src)
+    local has = false
+    for _, v in ipairs(a.ids) do if v == id then has = true break end end
+    if not has and id then table.insert(a.ids, id); save(accounts) end
+    sessions[src] = { username = user, admin = a.admin == true }
+    TriggerClientEvent('account_ollie:nuiResult', src, true, 'welcome ' .. user .. (a.admin and ' [ADMIN]' or ''))
+    pushState(src)
+end)
+
+RegisterNetEvent('account_ollie:nuiRegister')
+AddEventHandler('account_ollie:nuiRegister', function(user, pass)
+    local src = source
+    if not user or #user < 2 or not pass or #pass < 3 then
+        TriggerClientEvent('account_ollie:nuiResult', src, false, 'too short')
+        return
+    end
+    accounts = load()
+    if accounts[user] then
+        TriggerClientEvent('account_ollie:nuiResult', src, false, 'username taken')
+        return
+    end
+    accounts[user] = { password = pass, admin = false, ids = { pickId(src) } }
+    save(accounts)
+    sessions[src] = { username = user, admin = false }
+    TriggerClientEvent('account_ollie:nuiResult', src, true, 'registered as ' .. user)
+    pushState(src)
+end)
+
 -- EXPORTS
 exports('isLoggedIn', function(src) return sessions[src] ~= nil end)
 exports('isAdmin',    function(src) return sessions[src] and sessions[src].admin == true end)

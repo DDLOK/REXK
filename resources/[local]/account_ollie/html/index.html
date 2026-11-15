@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="root" style="display:none">
+        <div class="bg"></div>
+        <main class="card">
+            <header>
+                <h1 class="logo">
+                    <span class="e">E</span><span class="z">Z</span><span class="k">K</span>
+                    <small>TEAM</small>
+                </h1>
+                <p class="sub" id="sub">welcome — sign in to drop</p>
+            </header>
+
+            <div class="tabs">
+                <button class="tab active" data-mode="login">LOGIN</button>
+                <button class="tab" data-mode="register">REGISTER</button>
+            </div>
+
+            <form id="form" autocomplete="off" onsubmit="return false">
+                <label>
+                    <span>Username</span>
+                    <input id="user" type="text" maxlength="32" autocomplete="off" required>
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input id="pass" type="password" maxlength="64" autocomplete="off" required>
+                </label>
+
+                <div id="msg" class="msg"></div>
+
+                <button id="submit" class="submit">SIGN IN</button>
+            </form>
+
+            <footer>
+                made by <strong>EZK TEAM</strong> · discord.gg/ojailbreaks
+            </footer>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

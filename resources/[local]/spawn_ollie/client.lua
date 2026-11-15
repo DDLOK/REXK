@@ -12,12 +12,23 @@ local spawns = {
 }
 
 AddEventHandler('playerSpawned', function()
+    -- if logged in, prefer going home; else random spawn point
+    Wait(500)
+    local loggedIn = false
+    pcall(function() loggedIn = exports.account_ollie:isLoggedIn() end)
+    if loggedIn then
+        TriggerServerEvent('house_ollie:goHome')
+        SetNotificationTextEntry('STRING')
+        AddTextComponentString('~p~home sweet home ~y~[F5 for menu]')
+        DrawNotification(false, true)
+        return
+    end
     local s = spawns[math.random(#spawns)]
     local p = PlayerPedId()
     SetEntityCoords(p, s.coords.x, s.coords.y, s.coords.z, false, false, false, true)
     SetEntityHeading(p, s.h)
     SetPedDefaultComponentVariation(p)
     SetNotificationTextEntry('STRING')
-    AddTextComponentString('~p~spawned: ~w~' .. s.name .. '  ~y~[F5 for menu]')
+    AddTextComponentString('~p~spawned: ~w~' .. s.name .. '  ~y~[F5 for menu / sign in with the EZK form]')
     DrawNotification(false, true)
 end)

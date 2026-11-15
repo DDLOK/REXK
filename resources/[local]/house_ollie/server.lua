@@ -43,13 +43,20 @@ local function assignHouse(username)
     return pick
 end
 
-RegisterCommand('home', function(src)
+local function sendHome(src)
     local user = exports.account_ollie:getUsername(src)
-    if not user then reply(src, {255,80,80}, 'HOUSE', 'login first: /login <user> <pass>') return end
+    if not user then reply(src, {255,80,80}, 'HOUSE', 'login first via the EZK form') return end
     local idx = assignHouse(user)
     local h = HOUSES[idx]
     TriggerClientEvent('house_ollie:teleport', src, { x = h.x, y = h.y, z = h.z, h = h.h, name = h.name })
-end, false)
+end
+
+RegisterCommand('home', sendHome, false)
+
+RegisterNetEvent('house_ollie:goHome')
+AddEventHandler('house_ollie:goHome', function()
+    sendHome(source)
+end)
 
 RegisterCommand('myhouse', function(src)
     local user = exports.account_ollie:getUsername(src)
