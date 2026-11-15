@@ -134,21 +134,42 @@ CreateThread(function()
     end
 end)
 
--- ========== god mode ==========
+-- ========== god mode (tight loop so it actually works) ==========
+CreateThread(function()
+    while true do
+        if godMode then
+            local p = ped()
+            SetPlayerInvincible(pid(), true)
+            SetEntityInvincible(p, true)
+            SetEntityCanBeDamaged(p, false)
+            SetPedCanBeTargetted(p, false)
+            SetPedCanRagdoll(p, false)
+            SetPedCanBeShotInVehicle(p, false)
+            SetPedCanBeKnockedOffVehicle(p, 1)
+            SetPedCanBeDraggedOut(p, false)
+            SetPlayerCanBeHassledByGangs(pid(), false)
+            if GetEntityHealth(p) < GetEntityMaxHealth(p) then
+                SetEntityHealth(p, GetEntityMaxHealth(p))
+            end
+            if GetPedArmour(p) < 100 then SetPedArmour(p, 100) end
+            Wait(0)
+        else
+            local p = ped()
+            SetPlayerInvincible(pid(), false)
+            SetEntityInvincible(p, false)
+            SetEntityCanBeDamaged(p, true)
+            Wait(500)
+        end
+    end
+end)
+
+-- ========== infinite ammo + super sprint (separate loop so god pacing stays tight) ==========
 CreateThread(function()
     while true do
         Wait(500)
-        if godMode then
-            SetPlayerInvincible(pid(), true)
-            SetEntityInvincible(ped(), true)
-            ClearPedBloodDamage(ped())
-            SetEntityHealth(ped(), GetEntityMaxHealth(ped()))
-        end
         if infinAmmo then
             local w = GetSelectedPedWeapon(ped())
-            if w ~= `WEAPON_UNARMED` then
-                SetPedInfiniteAmmo(ped(), true, w)
-            end
+            if w ~= `WEAPON_UNARMED` then SetPedInfiniteAmmo(ped(), true, w) end
         end
         if superSprint then
             SetRunSprintMultiplierForPlayer(pid(), 1.49)
@@ -405,3 +426,9 @@ end)
 
 RegisterCommand('menu', mainMenu, false)
 TriggerEvent('chat:addSuggestion', '/menu', 'open the main menu (same as F5)', {})
+
+-- external open hook (e.g. house wardrobe)
+AddEventHandler('menu_ollie:openClothing', function()
+    if Menu.isOpen() then Menu.close() end
+    clothingMenu()
+end)

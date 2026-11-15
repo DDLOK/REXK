@@ -119,6 +119,17 @@ CreateThread(function()
     end
 end)
 
+RegisterNetEvent('jobs_ollie:pay')
+AddEventHandler('jobs_ollie:pay', function(expectedJob, amount)
+    local src = source
+    if not sessions[src] then getJob(src) end
+    if sessions[src].job ~= expectedJob then return end
+    if not sessions[src].onDuty then return end
+    amount = tonumber(amount) or 0
+    if amount <= 0 or amount > 5000 then return end   -- anti-cheat clamp
+    exports.cash_ollie:addCash(src, amount)
+end)
+
 AddEventHandler('playerDropped', function() sessions[source] = nil end)
 
-print('^2[jobs_ollie]^7 loaded - 7 jobs - salary tick 10min')
+print('^2[jobs_ollie]^7 loaded - 7 jobs - salary tick 10min + /work loops')

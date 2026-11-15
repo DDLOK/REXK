@@ -5,7 +5,7 @@ description 'jobs - apply, duty, salary tick'
 version '1.0.0'
 
 server_scripts { 'server.lua' }
-client_scripts { 'client.lua' }
+client_scripts { 'client.lua', 'work.lua' }
 
 dependency 'account_ollie'
 dependency 'cash_ollie'
