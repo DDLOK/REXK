@@ -18,10 +18,11 @@ end
 local function openLogin()
     NuiOpen = true
     SendNUIMessage({ action = 'open' })
-    Wait(100)
-    SetNuiFocus(true, true)
-    SetNuiFocusKeepInput(false)
-    SetCursorLocation(0.5, 0.5)
+    CreateThread(function()
+        Wait(150)
+        SetNuiFocus(true, true)
+        SetCursorLocation(0.5, 0.5)
+    end)
 end
 
 local function closeLogin()
@@ -30,7 +31,8 @@ local function closeLogin()
     SendNUIMessage({ action = 'close' })
 end
 
--- GATE THREAD: while not logged in, hide player + block gameplay (cursor stays alive via NUI focus)
+-- GATE THREAD: keep player hidden/invincible/frozen until logged in.
+-- NUI focus is only set once in openLogin — re-asserting every tick kills the cursor.
 CreateThread(function()
     while true do
         if not LoggedIn then
@@ -40,18 +42,33 @@ CreateThread(function()
                 SetEntityVisible(p, false, false)
                 FreezeEntityPosition(p, true)
                 SetPlayerInvisibleLocally(PlayerId(), true)
-                HideHudAndRadarThisFrame()
-                -- ensure NUI focus holds (survives respawns / resource restarts)
-                if not IsNuiFocused() then
-                    SendNUIMessage({ action = 'open' })
-                    SetNuiFocus(true, true)
-                    SetNuiFocusKeepInput(false)
-                    SetCursorLocation(0.5, 0.5)
-                end
             end
-            Wait(100)
+            Wait(500)
+        else
+            Wait(1000)
+        end
+    end
+end)
+
+-- hide HUD every frame while gated (HideHudAndRadarThisFrame needs per-frame calls)
+CreateThread(function()
+    while true do
+        if not LoggedIn then
+            HideHudAndRadarThisFrame()
+            Wait(0)
         else
             Wait(500)
+        end
+    end
+end)
+
+-- safety net: if focus accidentally drops while unlogged, restore after a grace period
+CreateThread(function()
+    while true do
+        Wait(2000)
+        if not LoggedIn and NuiOpen and not IsNuiFocused() then
+            SetNuiFocus(true, true)
+            SetCursorLocation(0.5, 0.5)
         end
     end
 end)
