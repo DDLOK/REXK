@@ -222,8 +222,83 @@ local function weaponMenu()
     Menu.push(items, 'WEAPONS')
 end
 
+local function clothingMenu()
+    local p = ped()
+    local isMale = GetEntityModel(p) == `mp_m_freemode_01`
+    local isFemale = GetEntityModel(p) == `mp_f_freemode_01`
+    if not isMale and not isFemale then
+        notify('~r~switch to a freemode model first (Self > Model)')
+    end
+    local parts = {
+        { name = 'Mask',         comp = 1  },
+        { name = 'Hair',         comp = 2  },
+        { name = 'Torso',        comp = 3  },
+        { name = 'Legs',         comp = 4  },
+        { name = 'Hands/Bag',    comp = 5  },
+        { name = 'Shoes',        comp = 6  },
+        { name = 'Accessories',  comp = 7  },
+        { name = 'Undershirt',   comp = 8  },
+        { name = 'Body Armor',   comp = 9  },
+        { name = 'Decals',       comp = 10 },
+        { name = 'Top',          comp = 11 },
+    }
+    local items = {}
+    for _, part in ipairs(parts) do
+        local maxDraw = GetNumberOfPedDrawableVariations(p, part.comp)
+        local cur = GetPedDrawableVariation(p, part.comp)
+        table.insert(items, {
+            label = part.name,
+            values = (function() local v = {} for i = 0, math.max(0, maxDraw - 1) do v[#v+1] = tostring(i) end return v end)(),
+            cur = cur + 1,
+            onChange = function(_, i)
+                SetPedComponentVariation(p, part.comp, i - 1, 0, 0)
+                notify(('~g~%s ~w~drawable ~y~%d'):format(part.name, i - 1))
+            end
+        })
+    end
+    local props = {
+        { name = 'Hat',       prop = 0 },
+        { name = 'Glasses',   prop = 1 },
+        { name = 'Ears',      prop = 2 },
+        { name = 'Watch',     prop = 6 },
+        { name = 'Bracelet',  prop = 7 },
+    }
+    for _, part in ipairs(props) do
+        local maxDraw = GetNumberOfPedPropDrawableVariations(p, part.prop)
+        table.insert(items, {
+            label = 'Prop: ' .. part.name,
+            values = (function()
+                local v = { 'none' }
+                for i = 0, math.max(0, maxDraw - 1) do v[#v+1] = tostring(i) end
+                return v
+            end)(),
+            cur = 1,
+            onChange = function(_, i)
+                if i == 1 then
+                    ClearPedProp(p, part.prop)
+                else
+                    SetPedPropIndex(p, part.prop, i - 2, 0, true)
+                end
+            end
+        })
+    end
+    table.insert(items, 1, { label = '-- Model --' })
+    table.insert(items, 2, { label = 'Freemode Male',   onSelect = function()
+        local m = `mp_m_freemode_01`; RequestModel(m); while not HasModelLoaded(m) do Wait(0) end
+        SetPlayerModel(pid(), m); SetPedDefaultComponentVariation(PlayerPedId()); notify('~g~model: male')
+    end })
+    table.insert(items, 3, { label = 'Freemode Female', onSelect = function()
+        local m = `mp_f_freemode_01`; RequestModel(m); while not HasModelLoaded(m) do Wait(0) end
+        SetPlayerModel(pid(), m); SetPedDefaultComponentVariation(PlayerPedId()); notify('~g~model: female')
+    end })
+    table.insert(items, 4, { label = '-- Clothing --' })
+    Menu.push(items, 'CLOTHING')
+end
+
 local function selfMenu()
     local items = {
+        { label = 'Go Home',    onSelect = function() ExecuteCommand('home') end },
+        { label = 'Clothing',   submenu = true, onSelect = clothingMenu },
         { label = 'Heal full',  onSelect = function() SetEntityHealth(ped(), GetEntityMaxHealth(ped())); notify('~g~healed') end },
         { label = 'Armor full', onSelect = function() SetPedArmour(ped(), 100); notify('~g~armored') end },
         { label = 'Revive',     onSelect = function()

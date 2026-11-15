@@ -1,11 +1,11 @@
 -- =========================================================
--- admin_ollie - chat-command admin tools (ace-gated)
+-- admin_ollie - account-based admin (reno + kane Ghost)
 -- =========================================================
 
 local function isAdmin(src)
     if src == 0 then return true end
-    return IsPlayerAceAllowed(src, 'command')
-        or IsPlayerAceAllowed(src, 'command.ac')
+    local ok, result = pcall(function() return exports.account_ollie:isAdmin(src) end)
+    return ok and result == true
 end
 
 local function reply(src, color, author, msg)
@@ -13,20 +13,22 @@ local function reply(src, color, author, msg)
 end
 
 RegisterCommand('ac', function(src, args)
-    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'no perms') return end
+    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'admins only') return end
     if #args == 0 then return end
     TriggerClientEvent('chat:addMessage', -1, {
         color = {255, 100, 100},
-        args = { '📢 ANNOUNCE', table.concat(args, ' ') }
+        args = { 'ANNOUNCE', table.concat(args, ' ') }
     })
 end, false)
 
 RegisterCommand('kick', function(src, args)
-    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'no perms') return end
+    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'admins only') return end
     local target = tonumber(args[1])
     if not target then reply(src, {255,60,60}, 'SERVER', 'usage: /kick <id> [reason]') return end
     table.remove(args, 1)
-    DropPlayer(target, 'kicked: ' .. (table.concat(args, ' ') or 'no reason'))
+    local reason = table.concat(args, ' ')
+    if reason == '' then reason = 'no reason' end
+    DropPlayer(target, 'kicked: ' .. reason)
 end, false)
 
 local bansFile = 'bans.json'
@@ -34,18 +36,16 @@ local function loadBans()
     local raw = LoadResourceFile(GetCurrentResourceName(), bansFile)
     if not raw or raw == '' then return {} end
     local ok, data = pcall(json.decode, raw)
-    return ok and data or {}
+    return (ok and data) or {}
 end
-local function saveBans(t)
-    SaveResourceFile(GetCurrentResourceName(), bansFile, json.encode(t), -1)
-end
+local function saveBans(t) SaveResourceFile(GetCurrentResourceName(), bansFile, json.encode(t), -1) end
 
 RegisterCommand('ban', function(src, args)
-    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'no perms') return end
+    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'admins only') return end
     local target = tonumber(args[1])
     if not target then reply(src, {255,60,60}, 'SERVER', 'usage: /ban <id> [reason]') return end
-    local ids = GetPlayerIdentifiers(target)
-    if not ids or #ids == 0 then reply(src, {255,60,60}, 'SERVER', 'player not found') return end
+    local ids = GetPlayerIdentifiers(target) or {}
+    if #ids == 0 then reply(src, {255,60,60}, 'SERVER', 'player not found') return end
     table.remove(args, 1)
     local reason = table.concat(args, ' ')
     if reason == '' then reason = 'no reason' end
@@ -59,7 +59,7 @@ RegisterCommand('ban', function(src, args)
 end, false)
 
 RegisterCommand('unban', function(src, args)
-    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'no perms') return end
+    if not isAdmin(src) then reply(src, {255,60,60}, 'SERVER', 'admins only') return end
     local id = args[1]
     if not id then reply(src, {255,60,60}, 'SERVER', 'usage: /unban <identifier>') return end
     local bans = loadBans()
@@ -86,16 +86,14 @@ AddEventHandler('playerConnecting', function(name, setKickReason, def)
             end
         end
     end)
-    if not ok then
-        print('^1[admin_ollie]^7 connect check error: ' .. tostring(err))
-    end
+    if not ok then print('^1[admin_ollie]^7 connect err: ' .. tostring(err)) end
     if not done then def.done() end
 end)
 
 RegisterCommand('players', function(src)
-    local n = #GetPlayers()
-    reply(src, {120,200,255}, 'SERVER', ('%d online'):format(n))
-    for _, pid in ipairs(GetPlayers()) do
+    local list = GetPlayers()
+    reply(src, {120,200,255}, 'SERVER', ('%d online'):format(#list))
+    for _, pid in ipairs(list) do
         reply(src, {180,180,180}, '  ', ('[%s] %s'):format(pid, GetPlayerName(pid)))
     end
 end, false)
@@ -103,9 +101,9 @@ end, false)
 RegisterCommand('whoami', function(src)
     if src == 0 then print('console'); return end
     reply(src, {120,200,255}, 'YOU', ('id=%d name=%s'):format(src, GetPlayerName(src)))
-    for _, id in ipairs(GetPlayerIdentifiers(src)) do
+    for _, id in ipairs(GetPlayerIdentifiers(src) or {}) do
         reply(src, {180,180,180}, '  ', id)
     end
 end, false)
 
-print('^2[admin_ollie]^7 loaded - /ac /kick /ban /unban /players /whoami')
+print('^2[admin_ollie]^7 loaded - account-gated (reno, kane Ghost)')
