@@ -16,10 +16,12 @@ local function notify(txt)
 end
 
 local function openLogin()
-    if NuiOpen then return end
     NuiOpen = true
-    SetNuiFocus(true, true)
     SendNUIMessage({ action = 'open' })
+    Wait(100)
+    SetNuiFocus(true, true)
+    SetNuiFocusKeepInput(false)
+    SetCursorLocation(0.5, 0.5)
 end
 
 local function closeLogin()
@@ -28,7 +30,7 @@ local function closeLogin()
     SendNUIMessage({ action = 'close' })
 end
 
--- GATE THREAD: while not logged in, freeze + invisible + skycage + no controls
+-- GATE THREAD: while not logged in, hide player + block gameplay (cursor stays alive via NUI focus)
 CreateThread(function()
     while true do
         if not LoggedIn then
@@ -37,14 +39,17 @@ CreateThread(function()
                 SetEntityInvincible(p, true)
                 SetEntityVisible(p, false, false)
                 FreezeEntityPosition(p, true)
-                SetEntityCoordsNoOffset(p, SKYCAGE.x, SKYCAGE.y, SKYCAGE.z, false, false, false)
                 SetPlayerInvisibleLocally(PlayerId(), true)
-                SetPlayerControl(PlayerId(), false, 0)
-                DisableAllControlActions(0)
-                EnableControlAction(0, 249, true) -- push-to-talk
                 HideHudAndRadarThisFrame()
+                -- ensure NUI focus holds (survives respawns / resource restarts)
+                if not IsNuiFocused() then
+                    SendNUIMessage({ action = 'open' })
+                    SetNuiFocus(true, true)
+                    SetNuiFocusKeepInput(false)
+                    SetCursorLocation(0.5, 0.5)
+                end
             end
-            Wait(0)
+            Wait(100)
         else
             Wait(500)
         end
