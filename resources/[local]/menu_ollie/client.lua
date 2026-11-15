@@ -414,18 +414,32 @@ local function mainMenu()
     }, "SAN VALLY STATE")
 end
 
--- F5 to open
+local function isAdmin()
+    local ok, r = pcall(function() return exports.account_ollie:isAdmin() end)
+    return ok and r == true
+end
+
+-- F5 (admins only)
 CreateThread(function()
     while true do
         Wait(0)
         if IsControlJustReleased(0, 166) then  -- F5
-            if Menu.isOpen() then Menu.close() else mainMenu() end
+            if not isAdmin() then
+                SetNotificationTextEntry('STRING')
+                AddTextComponentString('~r~admin only')
+                DrawNotification(false, true)
+            elseif Menu.isOpen() then
+                Menu.close()
+            else
+                mainMenu()
+            end
         end
     end
 end)
 
-RegisterCommand('menu', mainMenu, false)
-TriggerEvent('chat:addSuggestion', '/menu', 'open the main menu (same as F5)', {})
+RegisterCommand('menu', function()
+    if isAdmin() then mainMenu() end
+end, false)
 
 -- external open hook (e.g. house wardrobe)
 AddEventHandler('menu_ollie:openClothing', function()

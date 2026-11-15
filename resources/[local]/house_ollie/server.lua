@@ -75,4 +75,25 @@ RegisterCommand('rehouse', function(src)
     reply(src, {180,220,255}, 'HOUSE', ('new house: %s'):format(HOUSES[idx].name))
 end, false)
 
+-- /buyhouse <index> - pay to swap your assigned house to a specific one
+local HOUSE_PRICE = 15000
+RegisterCommand('buyhouse', function(src, args)
+    local user = exports.account_ollie:getUsername(src)
+    if not user then reply(src, {255,80,80}, 'HOUSE', 'login first') return end
+    local idx = tonumber(args[1])
+    if not idx then
+        reply(src, {120,200,255}, 'HOUSE', 'usage: /buyhouse <1-' .. #HOUSES .. '>')
+        for i, h in ipairs(HOUSES) do
+            reply(src, {180,180,180}, '  ' .. i, h.name .. ' - $' .. HOUSE_PRICE)
+        end
+        return
+    end
+    if not HOUSES[idx] then reply(src, {255,80,80}, 'HOUSE', 'invalid') return end
+    local ok = exports.cash_ollie:removeCash(src, HOUSE_PRICE)
+    if not ok then reply(src, {255,80,80}, 'HOUSE', 'need $' .. HOUSE_PRICE) return end
+    local t = load(); t[user] = idx; save(t)
+    reply(src, {100,255,150}, 'HOUSE', 'bought ' .. HOUSES[idx].name)
+    sendHome(src)
+end, false)
+
 print('^2[house_ollie]^7 loaded - ' .. #HOUSES .. ' house slots')

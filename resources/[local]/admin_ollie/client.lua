@@ -51,6 +51,57 @@ AddEventHandler('admin_ollie:tpTo', function(coords)
     Wait(200); DoScreenFadeIn(300)
 end)
 
+RegisterNetEvent('admin_ollie:armor')
+AddEventHandler('admin_ollie:armor', function() SetPedArmour(PlayerPedId(), 100) end)
+
+RegisterNetEvent('admin_ollie:revive')
+AddEventHandler('admin_ollie:revive', function()
+    local p = PlayerPedId()
+    NetworkResurrectLocalPlayer(GetEntityCoords(p), GetEntityHeading(p), true, false)
+    SetPlayerInvincible(PlayerId(), false); ClearPedBloodDamage(p)
+    SetEntityHealth(p, GetEntityMaxHealth(p))
+end)
+
+RegisterNetEvent('admin_ollie:freeze')
+AddEventHandler('admin_ollie:freeze', function(on)
+    FreezeEntityPosition(PlayerPedId(), on)
+end)
+
+RegisterNetEvent('admin_ollie:giveWeapon')
+AddEventHandler('admin_ollie:giveWeapon', function(w)
+    GiveWeaponToPed(PlayerPedId(), joaat(w), 500, false, true)
+end)
+
+RegisterNetEvent('admin_ollie:giveVehicle')
+AddEventHandler('admin_ollie:giveVehicle', function(model)
+    local m = joaat(model)
+    if not IsModelInCdimage(m) then return end
+    RequestModel(m)
+    local t = GetGameTimer()
+    while not HasModelLoaded(m) do Wait(0); if GetGameTimer() - t > 3000 then return end end
+    local p = PlayerPedId()
+    local c = GetEntityCoords(p)
+    local v = CreateVehicle(m, c.x, c.y, c.z, GetEntityHeading(p), true, false)
+    SetPedIntoVehicle(p, v, -1)
+    SetModelAsNoLongerNeeded(m)
+end)
+
+RegisterNetEvent('admin_ollie:spectate')
+AddEventHandler('admin_ollie:spectate', function(targetSrvId)
+    local target = GetPlayerFromServerId(targetSrvId)
+    if target == -1 then return end
+    local tp = GetPlayerPed(target)
+    NetworkSetInSpectatorMode(true, tp)
+    SetNotificationTextEntry('STRING'); AddTextComponentString('~g~spectating - /unspec to return')
+    DrawNotification(false, true)
+end)
+
+RegisterCommand('unspec', function()
+    NetworkSetInSpectatorMode(false, 0)
+    SetNotificationTextEntry('STRING'); AddTextComponentString('~g~returned')
+    DrawNotification(false, true)
+end, false)
+
 CreateThread(function()
     Wait(1500)
     TriggerEvent('chat:addSuggestion', '/admin', 'open the admin panel (F6)', {})

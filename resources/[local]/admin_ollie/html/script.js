@@ -23,8 +23,17 @@ function render() {
                 <button data-action="tpto">TP TO</button>
                 <button data-action="bring">BRING</button>
                 <button data-action="heal">HEAL</button>
+                <button data-action="revive">REVIVE</button>
+                <button data-action="armor">ARMOR</button>
                 <button data-action="givemoney">+$</button>
+                <button data-action="takemoney">-$</button>
                 <button data-action="setjob">JOB</button>
+                <button data-action="giveweap">GIVE GUN</button>
+                <button data-action="givecar">GIVE CAR</button>
+                <button data-action="spectate">SPECTATE</button>
+                <button data-action="freeze">FREEZE</button>
+                <button data-action="unfreeze">UNFREEZE</button>
+                <button data-action="makeadmin">ADMIN</button>
                 <button data-action="kick" class="danger">KICK</button>
                 <button data-action="ban" class="danger">BAN</button>
             </td>`;
@@ -57,7 +66,13 @@ function run(action, p) {
     if (action === 'givemoney' || action === 'takemoney') {
         openModal(action.toUpperCase() + ' ' + p.name, 'amount', v => { if (v) send(action, p.id, v); });
     } else if (action === 'setjob') {
-        openModal('SET JOB for ' + p.name, 'job id (police/taxi/trucker/mechanic/criminal/ems/unemployed)', v => { if (v) send(action, p.id, v); });
+        openModal('SET JOB for ' + p.name, 'police/taxi/trucker/mechanic/criminal/ems/unemployed', v => { if (v) send(action, p.id, v); });
+    } else if (action === 'giveweap') {
+        openModal('GIVE WEAPON to ' + p.name, 'e.g. WEAPON_CARBINERIFLE', v => { if (v) send(action, p.id, v); });
+    } else if (action === 'givecar') {
+        openModal('GIVE VEHICLE to ' + p.name, 'e.g. zentorno / adder / rhino', v => { if (v) send(action, p.id, v); });
+    } else if (action === 'makeadmin') {
+        if (confirm(`Promote ${p.account || p.name} to ADMIN?`)) send(action, p.id, '');
     } else if (action === 'kick' || action === 'ban') {
         if (confirm(`${action.toUpperCase()} ${p.name}?`)) send(action, p.id, '');
     } else {

@@ -6,7 +6,7 @@ version '1.1.0'
 
 shared_script 'shared.lua'
 server_scripts { 'server.lua' }
-client_scripts { 'client.lua' }
+client_scripts { 'client.lua', 'camera.lua' }
 
 ui_page 'html/index.html'
 files {

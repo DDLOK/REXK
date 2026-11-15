@@ -21,12 +21,14 @@ local function openLogin()
     SendNUIMessage({ action = 'open' })
     SetNuiFocus(true, true)
     SetCursorLocation(0.5, 0.5)
+    TriggerEvent('account_ollie:cameraStart')
 end
 
 local function closeLogin()
     NuiOpen = false
     SetNuiFocus(false, false)
     SendNUIMessage({ action = 'close' })
+    TriggerEvent('account_ollie:cameraStop')
 end
 
 -- GATE THREAD: keep player hidden/invincible/frozen until logged in.
@@ -103,9 +105,9 @@ AddEventHandler('account_ollie:state', function(s)
 end)
 
 AddEventHandler('account_ollie:justLoggedIn', function()
-    -- teleport to a sane place + respawn-ish
-    Wait(500)
-    TriggerServerEvent('house_ollie:goHome')
+    -- open character selector first; it will call home once a char is picked
+    Wait(400)
+    TriggerEvent('char_ollie:openSelector')
 end)
 
 AddEventHandler('onClientResourceStart', function(r)

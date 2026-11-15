@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="root" style="display:none">
+    <div class="bg"></div>
+    <div class="stage">
+        <header>
+            <h1>SAVED SKINS</h1>
+            <div class="underline">——————————</div>
+        </header>
+
+        <div class="slots" id="slots"></div>
+
+        <footer>
+            <span>pick a character to drop into <strong>SAN VALLY STATE</strong></span>
+        </footer>
+    </div>
+
+    <div class="modal" id="modal" style="display:none">
+        <div class="modal-card">
+            <h3>new character</h3>
+            <label>Name<input id="new-name" type="text" maxlength="24" placeholder="e.g. Jake Reyes"></label>
+            <div class="gender">
+                <button class="g" data-g="male" id="g-male">MALE</button>
+                <button class="g" data-g="female" id="g-female">FEMALE</button>
+            </div>
+            <div class="actions">
+                <button id="create-cancel">cancel</button>
+                <button id="create-ok" class="primary">CREATE</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body></html>

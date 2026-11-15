@@ -137,11 +137,35 @@ AddEventHandler('admin_ollie:action', function(action, target, value)
     elseif action == 'heal' then
         local p = GetPlayerPed(target)
         SetEntityHealth(p, GetEntityMaxHealth(p))
+    elseif action == 'armor' then
+        TriggerClientEvent('admin_ollie:armor', target)
+    elseif action == 'revive' then
+        TriggerClientEvent('admin_ollie:revive', target)
     elseif action == 'setjob' then
         pcall(function() exports.jobs_ollie:setJob(target, tostring(value)) end)
+    elseif action == 'giveweap' then
+        TriggerClientEvent('admin_ollie:giveWeapon', target, tostring(value or 'WEAPON_PISTOL'):upper())
+    elseif action == 'givecar' then
+        TriggerClientEvent('admin_ollie:giveVehicle', target, tostring(value or 'adder'):lower())
+    elseif action == 'freeze' then
+        TriggerClientEvent('admin_ollie:freeze', target, true)
+    elseif action == 'unfreeze' then
+        TriggerClientEvent('admin_ollie:freeze', target, false)
+    elseif action == 'spectate' then
+        TriggerClientEvent('admin_ollie:spectate', src, target)
     elseif action == 'makeadmin' then
-        -- admin granted via account_ollie seed; manual edit of accounts.json. Placeholder.
-        reply(src, {255,200,100}, 'ADMIN', 'promote: edit accounts.json for now')
+        local raw = LoadResourceFile('account_ollie', 'accounts.json')
+        local ok, acc = pcall(json.decode, raw or '{}')
+        if ok and acc then
+            local user
+            pcall(function() user = exports.account_ollie:getUsername(target) end)
+            if user and acc[user] then
+                acc[user].admin = true
+                SaveResourceFile('account_ollie', 'accounts.json', json.encode(acc), -1)
+                reply(src, {100,255,150}, 'ADMIN', 'promoted ' .. user .. ' - they relog to apply')
+                TriggerClientEvent('chat:addMessage', target, { color = {100,255,150}, args = { 'ADMIN', 'you have been promoted - relog to see F6' } })
+            end
+        end
     end
 end)
 
