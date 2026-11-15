@@ -69,17 +69,27 @@ RegisterCommand('unban', function(src, args)
 end, false)
 
 AddEventHandler('playerConnecting', function(name, setKickReason, def)
+    local src = source
     def.defer()
-    Wait(0)
+    Wait(100)
     def.update('checking bench records...')
-    local bans = loadBans()
-    for _, id in ipairs(GetPlayerIdentifiers(source)) do
-        if bans[id] then
-            def.done('banned: ' .. bans[id].reason)
-            return
+    Wait(0)
+    local done = false
+    local ok, err = pcall(function()
+        local ids = GetPlayerIdentifiers(src) or {}
+        local bans = loadBans()
+        for _, id in ipairs(ids) do
+            if bans[id] then
+                def.done('banned: ' .. (bans[id].reason or 'no reason'))
+                done = true
+                return
+            end
         end
+    end)
+    if not ok then
+        print('^1[admin_ollie]^7 connect check error: ' .. tostring(err))
     end
-    def.done()
+    if not done then def.done() end
 end)
 
 RegisterCommand('players', function(src)
