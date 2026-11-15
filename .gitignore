@@ -1,0 +1,22 @@
+# === fxserver runtime junk ===
+cache/
+logs/
+*.log
+crashes/
+dumps/
+
+# === txadmin data (per-host, not for repo) ===
+txData/
+
+# === per-host secrets ===
+# license key should come from env var / panel startup, not committed
+# bans are per-instance — don't ship them
+resources/[local]/admin_ollie/bans.json
+
+# === editor noise ===
+.vscode/
+.idea/
+*.swp
+*.bak
+Thumbs.db
+.DS_Store
