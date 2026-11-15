@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="root" style="display:none">
+    <div class="phone">
+        <div class="statusbar">
+            <span id="time">12:00</span>
+            <span class="brand">SVS</span>
+            <span class="battery">100%</span>
+        </div>
+        <div class="screen">
+            <div class="header">
+                <div class="who">
+                    <div class="name" id="user">—</div>
+                    <div class="job" id="job">Unemployed</div>
+                </div>
+                <div class="cash" id="cash">$0</div>
+            </div>
+
+            <div class="view" id="view-jobs">
+                <h2>Jobs</h2>
+                <p class="sub">apply and start earning</p>
+                <div id="jobs-list" class="list"></div>
+                <button class="action" id="duty-btn">TOGGLE DUTY</button>
+            </div>
+
+            <div class="view" id="view-bank" style="display:none">
+                <h2>Bank</h2>
+                <div class="balance">Balance: <strong id="bank-bal">$0</strong></div>
+                <div class="pay">
+                    <input id="pay-id" type="number" placeholder="player id">
+                    <input id="pay-amt" type="number" placeholder="amount">
+                    <button id="pay-btn">PAY</button>
+                </div>
+            </div>
+
+            <div class="view" id="view-contacts" style="display:none">
+                <h2>Contacts</h2>
+                <p class="sub">online players</p>
+                <div id="contacts-list" class="list"></div>
+            </div>
+
+            <div class="view" id="view-gps" style="display:none">
+                <h2>GPS</h2>
+                <p class="sub">set a waypoint</p>
+                <div class="gps">
+                    <input id="gps-x" type="number" placeholder="X coord">
+                    <input id="gps-y" type="number" placeholder="Y coord">
+                    <button id="gps-btn">SET WAYPOINT</button>
+                </div>
+                <div class="presets" id="gps-presets"></div>
+            </div>
+
+            <div class="view" id="view-settings" style="display:none">
+                <h2>Settings</h2>
+                <div class="toggle"><span>Mini-Map</span><input type="checkbox" id="sv-minimap" checked></div>
+                <div class="toggle"><span>HUD</span><input type="checkbox" id="sv-hud" checked></div>
+                <div class="toggle"><span>Idle Cam</span><input type="checkbox" id="sv-idle"></div>
+                <p class="hint">built by <strong>SAN VALLY STATE</strong></p>
+            </div>
+        </div>
+
+        <div class="dock">
+            <button class="dockbtn active" data-view="jobs">💼<span>Jobs</span></button>
+            <button class="dockbtn" data-view="bank">🏦<span>Bank</span></button>
+            <button class="dockbtn" data-view="contacts">👥<span>Contacts</span></button>
+            <button class="dockbtn" data-view="gps">📍<span>GPS</span></button>
+            <button class="dockbtn" data-view="settings">⚙️<span>Settings</span></button>
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
