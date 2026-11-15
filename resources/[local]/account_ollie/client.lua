@@ -49,13 +49,30 @@ CreateThread(function()
     end
 end)
 
--- hide HUD every frame while gated (HideHudAndRadarThisFrame needs per-frame calls)
+-- hide radar + specific HUD components while gated.
+-- IMPORTANT: HideHudAndRadarThisFrame() ALSO HIDES THE MOUSE CURSOR — do not use it here.
+-- Instead hide just radar + weapon/health/money/wanted so the cursor stays visible.
 CreateThread(function()
     while true do
         if not LoggedIn then
-            HideHudAndRadarThisFrame()
+            HideHudComponentThisFrame(1)   -- wanted stars
+            HideHudComponentThisFrame(2)   -- weapon icon
+            HideHudComponentThisFrame(3)   -- cash
+            HideHudComponentThisFrame(4)   -- mp cash
+            HideHudComponentThisFrame(6)   -- vehicle name
+            HideHudComponentThisFrame(7)   -- area name
+            HideHudComponentThisFrame(8)   -- vehicle class
+            HideHudComponentThisFrame(9)   -- street name
+            HideHudComponentThisFrame(13)  -- cash change
+            HideHudComponentThisFrame(17)  -- save game
+            HideHudComponentThisFrame(20)  -- weapon stats
+            HideHudComponentThisFrame(21)  -- weapon wheel icon
+            HideHudComponentThisFrame(22)  -- weapon wheel stats
+            HideHelpTextThisFrame()
+            DisplayRadar(false)
             Wait(0)
         else
+            DisplayRadar(true)
             Wait(500)
         end
     end
