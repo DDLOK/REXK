@@ -33,4 +33,4 @@ AddEventHandler('menu_ollie:bring', function(targetId)
     TriggerClientEvent('menu_ollie:teleportTo', targetId, { x = c.x, y = c.y, z = c.z })
 end)
 
-print('^2[menu_ollie]^7 loaded - F5 menu ready - made by EZK TEAM')
+print('^2[menu_ollie]^7 loaded - F5 menu ready - SAN VALLY STATE')

@@ -390,7 +390,7 @@ local function mainMenu()
         { label = 'World',     submenu = true, onSelect = worldMenu },
         { label = 'Players',   submenu = true, onSelect = playersMenu },
         { label = 'Close',     onSelect = Menu.close },
-    }, "EZK TEAM")
+    }, "SAN VALLY STATE")
 end
 
 -- F5 to open

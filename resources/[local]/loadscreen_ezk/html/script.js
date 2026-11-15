@@ -22,7 +22,7 @@ const TIPS = [
     'F5 → Teleports for 16 preset locations',
     '/me <action> to emote in chat',
     '/pm <id> <msg> for private messages',
-    'built different — EZK TEAM',
+    'welcome to SAN VALLY STATE',
 ];
 
 let tipIdx = 0;

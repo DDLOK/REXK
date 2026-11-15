@@ -29,9 +29,9 @@ end)
 RegisterNetEvent('chat_ollie:welcome')
 AddEventHandler('chat_ollie:welcome', function()
     local src = source
-    send(src, 'EZK',   {255,  80, 200}, 'welcome to the bench - sign in with the form')
-    send(src, 'EZK',   {255,  80, 200}, 'type /help for chat commands, F5 for the menu')
-    send(src, 'EZK',   {120, 200, 255}, 'made by EZK TEAM - discord.gg/ojailbreaks')
+    send(src, 'SVS',   {255,  80, 200}, 'welcome to San Vally State - sign in with the form')
+    send(src, 'SVS',   {255,  80, 200}, 'type /help for chat commands, F5 for the menu')
+    send(src, 'SVS',   {120, 200, 255}, 'SAN VALLY STATE - discord.gg/ojailbreaks')
 end)
 
 -- /me emote
@@ -80,4 +80,4 @@ RegisterCommand('pm', function(src, args)
     send(src,    'PM to '   .. (GetPlayerName(target) or target), {255, 200, 100}, msg)
 end, false)
 
-print('^2[chat_ollie]^7 loaded - made by EZK TEAM')
+print('^2[chat_ollie]^7 loaded - SAN VALLY STATE')
